@@ -1,0 +1,306 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>ThaibevQuiz</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <!--sweetalert2-->
+    <!--  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>-->
+    <!--<script src="sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="sweetalert2.min.css">-->
+
+    <style>
+        .circle50 {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            background-color: cornflowerblue;
+            text-align: center;
+            margin: auto;
+            padding: 10px;
+        }
+    </style>
+
+    <script>
+        var dblink = "https://localhost:44377/api/Master/"
+
+        $(document).ready(function () {
+            searchData("all", 1);
+        });
+
+        function searchData(dataSearch, typeSearch) {
+            //console.log(dataSearch + " :: " + typeSearch);
+            //var strurl = dblink + "GetEmployees";
+            var strurl = dblink + "GetEmployeesSearch?textSrc=" + (dataSearch == null || dataSearch == '' ? 'all' : dataSearch);
+            var datas = SubmitAjax(null, strurl);
+
+            //console.log(datas[0].empName);  Example use Data
+            //console.log(datas);  //Example use Data
+            if (typeSearch == 1) {
+                createMytable(datas, "showTable");
+            } else {
+                //$('#myModal').modal('show');
+                createMytableModel(datas, "tbodyModel");
+            }
+        }
+
+        function createMytable(datas, tableID) {
+            $("#" + tableID).html('');
+            var table = $('<table class="table" id="' + tableID + '">');
+
+            var headerTable = $("<thead>");
+            var trheader = $("<tr>");
+            var valHeader = ['รหัสพนักงาน', 'ชื่อ', 'นามสกุล', 'บริษัท', 'สิทธ์การใช้งาน', 'Action'];
+
+            $(valHeader).each(function (idx, val) {
+                trheader.append('<th scope="col">' + val + '</th>');
+            });
+            headerTable.append(trheader);
+            table.append(headerTable);
+
+            var BodyTable = $("<tbody id='tbodyMain'>");
+            var trBody = $("<tr>")
+
+            $(datas).each(function (idx, val) {
+
+                var trBody = $('<tr id="' + val.empCode + '">')
+                trBody.append('<th scope="col" class="main_empCode">' + val.empCode + '</th>');
+                trBody.append('<td>' + val.empName + '</td>');
+                trBody.append('<td>' + val.empSurName + '</td>');
+                trBody.append('<td>' + val.comName + '</td>');
+
+                var optiontd = "";
+                $(valPermission).each(function (idx, valPer) {
+                    //console.log(valPer + " = = " + val.permisstionType);
+                    if (valPer == val.permisstionType) {
+                        optiontd += "<option selected>" + valPer + "</option>";
+                    } else {
+                        optiontd += "<option>" + valPer + "</option>";
+                    }
+                });
+                trBody.append('<td><select class="form-control main_permissionType">' + optiontd + '</select></td>');
+                trBody.append('<td><button type="button" onclick="delEmp(this,\'' + val.empCode + '\')" class="btn .btn-link"><i class="fa fa-trash" style="color:red"></i ></button></td>');
+                BodyTable.append(trBody);
+            });
+
+            table.append(BodyTable);
+            $("#" + tableID).append(table);
+        }
+
+        function createMytableModel(datas, tableID) {
+            $("#" + tableID).html('');
+
+            //var trBody = $("<tr>")
+
+            $(datas).each(function (idx, val) {
+                var trBody = $('<tr id="model' + val.empCode + '">');
+                trBody.append('<td><input class="form-check-input model_checkbox" type="checkbox" value=""></td>');
+                //trBody.append('<th scope="col"><input type="text" class="model_empCode" value="' + val.empCode + '"></th>');
+                trBody.append('<th scope="col" class="model_empCode">' + val.empCode + '</th>');
+                trBody.append('<td class="model_empName">' + val.empName + ' ' + val.empSurName + ' </td>');
+                trBody.append('<td class="model_comName">' + val.comName + '</td>');
+
+                var optiontd = "";
+                $(valPermission).each(function (idx, valPer) {
+                    //console.log(valPer + " = = " + val.permisstionType);
+                    if (valPer == val.permisstionType) {
+                        optiontd += "<option selected>" + valPer + "</option>";
+                    } else {
+                        optiontd += "<option>" + valPer + "</option>";
+                    }
+                });
+                trBody.append('<td><select class="form-control model_permissionType" >' + optiontd + '</select></td>');
+                $("#" + tableID).append(trBody);
+            });
+
+        }
+
+        function saveDataModel() {
+            var tbodyModel = $("#tbodyModel");
+
+            var checkboxx = 0
+            $('tbody#tbodyModel  > tr').each(function (index, tr) {
+                var model_checkbox = $(tr).find(".model_checkbox")[0].checked;
+                if (model_checkbox != false) {
+
+                    checkboxx = 1;
+                }
+            });
+
+            if (checkboxx >= 1) {
+                var params = [];
+                $('tbody#tbodyModel  > tr').each(function (index, tr) {
+                    var model_checkbox = $(tr).find(".model_checkbox")[0].checked;
+                    if (model_checkbox != false) {
+                        var param = {
+                            "EmpCode": $(tr).find(".model_empCode").text(),
+                            "EmpName": $(tr).find(".model_empName").text().split(" ")[0],
+                            "EmpSurName": $(tr).find(".model_empName").text().split(" ")[1],
+                            "ComName": $(tr).find(".model_comName").text(),
+                            "PermisstionType": $(tr).find(".model_permissionType").val(),
+                            IsActive: "1"
+                        }
+                        params.push(param);
+                    }
+                });
+
+                var strurl = dblink + "insertEmployee";
+                SubmitAjax(params, strurl)
+                $("#modelclose").trigger("click");
+                searchData("all", 1);
+
+            } else {
+                alert("ต้องทำการเลือก check box อย่างน้อย 1 รายการ");
+            }
+        }
+
+        function ShowModelUpdateDataMain() {
+            $('#myModalUpdate').modal('show');
+        }
+
+        //function ShowModelDeleteDataMain(empCode) {
+        //    $('#deleteEmp').val(empCode);
+        //    $('#myModalDelete').modal('show');
+        //}
+
+        function UpdateDataMain() {
+            var tbodyModel = $("#tbodyMain");
+            var params = [];
+            $('tbody#tbodyMain  > tr').each(function (index, tr) {
+                var param = {
+                    "EmpCode": $(tr).find(".main_empCode").text(),
+                    //"EmpName": $(tr).find(".main_empName").text().split(" ")[0],
+                    //"EmpSurName": $(tr).find(".main_empName").text().split(" ")[1],
+                    //"ComName": $(tr).find(".main_comName").text(),
+                    "PermisstionType": $(tr).find(".main_permissionType").val()//,
+                    //IsActive: "1"
+                }
+                params.push(param);
+            });
+
+            var strurl = dblink + "updateEmployee";
+            SubmitAjax(params, strurl)
+            searchData("all", 1);
+            $("#modelcloseUpdate").trigger("click");
+        }
+
+        function delEmp(obj, EmpCode) {
+            //console.log(EmpCode);
+            //console.log(EmpCode.padStart(6, '0'));
+            // $(obj).closest("tr").remove();
+
+            $('#deleteEmp').val(EmpCode);
+            $('#myModalDelete').modal('show');
+
+            //Swal.fire({
+            //    title: 'Error!',
+            //    text: 'Do you want to continue',
+            //    icon: 'error',
+            //    confirmButtonText: 'Cool'
+            //})
+        }
+
+        function DeleteDataMain(empCode) {
+            var param = {
+                "EmpCode": empCode
+            }
+
+            var strurl = dblink + "DeleteEmployee";
+            SubmitAjax(param, strurl)
+            searchData("all", 1);
+            $("#modelcloseDelete").trigger("click");
+        }
+
+    </script>
+</head>
+<body>
+
+    <div class="col-sm-12" style="background-color: green; color: black; height: 30px; text-align: center; ">
+        IT 08-1
+    </div>
+
+    <div class="container" style="width: 670px;">
+        <div class="row" style="margin-top:50px">
+            <div class="col-sm-1">
+                <div class="circle50">
+                    6
+                </div>
+            </div>
+
+            <div class="col-sm-11">
+                HAM TEST <br>
+                16 ตุลาคม 2023 16:00
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12" style="margin-top:10px">
+                <img src="https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*" alt="Avatar" style="width:500px;height:450px">
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:30px">
+            <div class="col-sm-1">
+                <div class="circle50">
+                    7
+                </div>
+            </div>
+
+            <div class="col-sm-11">
+                LALIN TEST <br>
+                <input type="text" name="comment" value="" placeholder="comment" />
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:30px">
+            <div class="col-sm-1">
+                <div class="circle50">
+                    7
+                </div>
+            </div>
+            <div class="col-sm-11">
+                LALIN TEST <br>
+                <p>รูปนี้น่ารักมากก</p>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        function SubmitAjax(formContainer, strurl) {
+            var result;
+            var datas = JSON.stringify(formContainer);
+            //var datas = formContainer;
+            $.ajax({
+                async: false
+                , type: "POST"
+                , url: strurl
+                , contentType: "application/json; charset=utf-8"
+                , data: datas
+                , headers: {
+                    'Access-Control-Allow-Origin': "*"
+                }
+                , success: function (response) {
+                    result = response;
+                }
+                , error: function (xhr, status, msg) {
+                    result = null;
+                }
+            });
+            return result;
+        }
+
+    </script>
+</body>
+</html>
