@@ -56,7 +56,7 @@ public partial class DbquizThaibevContext : DbContext
             entity.HasKey(e => e.CommentId).HasName("PK__TbCommen__C3B4DFCAE34F4B79");
 
             entity.Property(e => e.Comment).HasMaxLength(500);
-            entity.Property(e => e.CommentBy).HasColumnType("datetime");
+            entity.Property(e => e.CommentBy).HasMaxLength(500);
 
             entity.HasOne(d => d.Post).WithMany(p => p.TbComments)
                 .HasForeignKey(d => d.PostId)

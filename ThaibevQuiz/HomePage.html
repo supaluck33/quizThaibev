@@ -15,10 +15,6 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 
-    <!--sweetalert2-->
-    <!--  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>-->
-    <!--<script src="sweetalert2.min.js"></script>
-    <link rel="stylesheet" href="sweetalert2.min.css">-->
 
     <style>
         .circle50 {
@@ -30,198 +26,133 @@
             margin: auto;
             padding: 10px;
         }
+
+        .comment {
+            width: 70%;
+            background-color: #80808042;
+            border-radius: 5px;
+            border-style: hidden;
+        }
     </style>
 
     <script>
-        var dblink = "https://localhost:44377/api/Master/"
+        var dblink = "https://localhost:7294/api/Master/"
+
+        var userlogin = 'Blend 285';
+        var postId = 2;
 
         $(document).ready(function () {
-            searchData("all", 1);
+            searchData(postId);
+
+
+            $('input.comment').keydown(function (event) {
+                var id = event.key || event.which || event.keyCode || 0;
+
+                if (id == "Enter") {
+                    insertComment(userlogin, event.target.value, postId);
+                  
+                }
+            });
         });
 
-        function searchData(dataSearch, typeSearch) {
-            //console.log(dataSearch + " :: " + typeSearch);
-            //var strurl = dblink + "GetEmployees";
-            var strurl = dblink + "GetEmployeesSearch?textSrc=" + (dataSearch == null || dataSearch == '' ? 'all' : dataSearch);
-            var datas = SubmitAjax(null, strurl);
+        function searchData(PostId) {
+            var strurl = dblink + "GetFiles?PostId=" + PostId;
+            var res = SubmitAjax(null, strurl)
 
-            //console.log(datas[0].empName);  Example use Data
-            //console.log(datas);  //Example use Data
-            if (typeSearch == 1) {
-                createMytable(datas, "showTable");
-            } else {
-                //$('#myModal').modal('show');
-                createMytableModel(datas, "tbodyModel");
-            }
+            showPost(res)
+
+            var strurl = dblink + "GetComments?PostId=" + PostId;
+            var resCommnet = SubmitAjax(null, strurl)
+            showComment(resCommnet);
+
+            console.log(resCommnet);
         }
 
-        function createMytable(datas, tableID) {
-            $("#" + tableID).html('');
-            var table = $('<table class="table" id="' + tableID + '">');
+        function showPost(data) {
+            var mainPost = $("#cPost");
 
-            var headerTable = $("<thead>");
-            var trheader = $("<tr>");
-            var valHeader = ['รหัสพนักงาน', 'ชื่อ', 'นามสกุล', 'บริษัท', 'สิทธ์การใช้งาน', 'Action'];
+            var rowheaderPost = '<div class="row" style="margin-top:50px">';               
+            rowheaderPost += '<div class="col-sm-1">';
+            rowheaderPost += '<div class="circle50">';
+            rowheaderPost += data.postBy.substring(0, 1);
+            rowheaderPost += ' </div></div>';
 
-            $(valHeader).each(function (idx, val) {
-                trheader.append('<th scope="col">' + val + '</th>');
-            });
-            headerTable.append(trheader);
-            table.append(headerTable);
+            rowheaderPost += ' <div class="col-sm-11">';
+            rowheaderPost += data.postBy +' <br>';
+            rowheaderPost += data.postDate;
+            rowheaderPost += ' </div></div>';
 
-            var BodyTable = $("<tbody id='tbodyMain'>");
-            var trBody = $("<tr>")
+            rowheaderPost += '<div class="row">';
+            rowheaderPost += '<div class="col-sm-12" style="margin-top:10px">';
+            rowheaderPost += '<img src="' + data.postimage +'" alt="Avatar" style="width:500px;height:450px">';
+            rowheaderPost += ' </div></div>';
 
-            $(datas).each(function (idx, val) {
-
-                var trBody = $('<tr id="' + val.empCode + '">')
-                trBody.append('<th scope="col" class="main_empCode">' + val.empCode + '</th>');
-                trBody.append('<td>' + val.empName + '</td>');
-                trBody.append('<td>' + val.empSurName + '</td>');
-                trBody.append('<td>' + val.comName + '</td>');
-
-                var optiontd = "";
-                $(valPermission).each(function (idx, valPer) {
-                    //console.log(valPer + " = = " + val.permisstionType);
-                    if (valPer == val.permisstionType) {
-                        optiontd += "<option selected>" + valPer + "</option>";
-                    } else {
-                        optiontd += "<option>" + valPer + "</option>";
-                    }
-                });
-                trBody.append('<td><select class="form-control main_permissionType">' + optiontd + '</select></td>');
-                trBody.append('<td><button type="button" onclick="delEmp(this,\'' + val.empCode + '\')" class="btn .btn-link"><i class="fa fa-trash" style="color:red"></i ></button></td>');
-                BodyTable.append(trBody);
-            });
-
-            table.append(BodyTable);
-            $("#" + tableID).append(table);
+            mainPost.append(rowheaderPost);
         }
 
-        function createMytableModel(datas, tableID) {
-            $("#" + tableID).html('');
+        function showComment(data) {
+            var mainPost = $("#cComment");
 
-            //var trBody = $("<tr>")
+            var rowheaderPost = '<div class="row" style="margin-top:30px">';
+            rowheaderPost += '<div class="col-sm-1">';
+            rowheaderPost += '<div class="circle50">';
+            rowheaderPost += userlogin.substring(0, 1);
+            rowheaderPost += ' </div></div>';
 
-            $(datas).each(function (idx, val) {
-                var trBody = $('<tr id="model' + val.empCode + '">');
-                trBody.append('<td><input class="form-check-input model_checkbox" type="checkbox" value=""></td>');
-                //trBody.append('<th scope="col"><input type="text" class="model_empCode" value="' + val.empCode + '"></th>');
-                trBody.append('<th scope="col" class="model_empCode">' + val.empCode + '</th>');
-                trBody.append('<td class="model_empName">' + val.empName + ' ' + val.empSurName + ' </td>');
-                trBody.append('<td class="model_comName">' + val.comName + '</td>');
+            rowheaderPost += ' <div class="col-sm-11">';
+            rowheaderPost += userlogin + ' <br>';
+            rowheaderPost += '<input type="text" name="comment" value="" placeholder="  Comment" class="comment" />';
+            rowheaderPost += ' </div></div>';
+            mainPost.append(rowheaderPost);
 
-                var optiontd = "";
-                $(valPermission).each(function (idx, valPer) {
-                    //console.log(valPer + " = = " + val.permisstionType);
-                    if (valPer == val.permisstionType) {
-                        optiontd += "<option selected>" + valPer + "</option>";
-                    } else {
-                        optiontd += "<option>" + valPer + "</option>";
-                    }
-                });
-                trBody.append('<td><select class="form-control model_permissionType" >' + optiontd + '</select></td>');
-                $("#" + tableID).append(trBody);
+            $(data).each(function (idx, val) {
+
+                var rowheaderPost = '<div class="row" style="margin-top:30px">';
+                rowheaderPost += '<div class="col-sm-1">';
+                rowheaderPost += '<div class="circle50">';
+                rowheaderPost += val.commentBy.substring(0, 1);
+                rowheaderPost += ' </div></div>';
+
+                rowheaderPost += ' <div class="col-sm-11">';
+                rowheaderPost += val.commentBy + ' <br>';
+                rowheaderPost += val.comment;
+                rowheaderPost += ' </div></div>';
+
+                mainPost.append(rowheaderPost);
             });
 
+          
         }
 
-        function saveDataModel() {
-            var tbodyModel = $("#tbodyModel");
+        function insertComment(userlogin, textComment, PostId) {
+            var mainPost = $("#cComment");
+            var rowheaderPost = '<div class="row" style="margin-top:30px">';
+            rowheaderPost += '<div class="col-sm-1">';
+            rowheaderPost += '<div class="circle50">';
+            rowheaderPost += userlogin.substring(0, 1);
+            rowheaderPost += ' </div></div>';
 
-            var checkboxx = 0
-            $('tbody#tbodyModel  > tr').each(function (index, tr) {
-                var model_checkbox = $(tr).find(".model_checkbox")[0].checked;
-                if (model_checkbox != false) {
+            rowheaderPost += ' <div class="col-sm-11">';
+            rowheaderPost += userlogin + ' <br>';
+            rowheaderPost += textComment;
+            rowheaderPost += ' </div></div>';
 
-                    checkboxx = 1;
-                }
-            });
+            mainPost.append(rowheaderPost);
 
-            if (checkboxx >= 1) {
-                var params = [];
-                $('tbody#tbodyModel  > tr').each(function (index, tr) {
-                    var model_checkbox = $(tr).find(".model_checkbox")[0].checked;
-                    if (model_checkbox != false) {
-                        var param = {
-                            "EmpCode": $(tr).find(".model_empCode").text(),
-                            "EmpName": $(tr).find(".model_empName").text().split(" ")[0],
-                            "EmpSurName": $(tr).find(".model_empName").text().split(" ")[1],
-                            "ComName": $(tr).find(".model_comName").text(),
-                            "PermisstionType": $(tr).find(".model_permissionType").val(),
-                            IsActive: "1"
-                        }
-                        params.push(param);
-                    }
-                });
-
-                var strurl = dblink + "insertEmployee";
-                SubmitAjax(params, strurl)
-                $("#modelclose").trigger("click");
-                searchData("all", 1);
-
-            } else {
-                alert("ต้องทำการเลือก check box อย่างน้อย 1 รายการ");
-            }
-        }
-
-        function ShowModelUpdateDataMain() {
-            $('#myModalUpdate').modal('show');
-        }
-
-        //function ShowModelDeleteDataMain(empCode) {
-        //    $('#deleteEmp').val(empCode);
-        //    $('#myModalDelete').modal('show');
-        //}
-
-        function UpdateDataMain() {
-            var tbodyModel = $("#tbodyMain");
-            var params = [];
-            $('tbody#tbodyMain  > tr').each(function (index, tr) {
-                var param = {
-                    "EmpCode": $(tr).find(".main_empCode").text(),
-                    //"EmpName": $(tr).find(".main_empName").text().split(" ")[0],
-                    //"EmpSurName": $(tr).find(".main_empName").text().split(" ")[1],
-                    //"ComName": $(tr).find(".main_comName").text(),
-                    "PermisstionType": $(tr).find(".main_permissionType").val()//,
-                    //IsActive: "1"
-                }
-                params.push(param);
-            });
-
-            var strurl = dblink + "updateEmployee";
-            SubmitAjax(params, strurl)
-            searchData("all", 1);
-            $("#modelcloseUpdate").trigger("click");
-        }
-
-        function delEmp(obj, EmpCode) {
-            //console.log(EmpCode);
-            //console.log(EmpCode.padStart(6, '0'));
-            // $(obj).closest("tr").remove();
-
-            $('#deleteEmp').val(EmpCode);
-            $('#myModalDelete').modal('show');
-
-            //Swal.fire({
-            //    title: 'Error!',
-            //    text: 'Do you want to continue',
-            //    icon: 'error',
-            //    confirmButtonText: 'Cool'
-            //})
-        }
-
-        function DeleteDataMain(empCode) {
             var param = {
-                "EmpCode": empCode
+                "Comment": textComment,
+                "PostId": PostId,
+                "CommentBy": userlogin             
             }
 
-            var strurl = dblink + "DeleteEmployee";
-            SubmitAjax(param, strurl)
-            searchData("all", 1);
-            $("#modelcloseDelete").trigger("click");
-        }
+            console.log(param);
+            //params.push(param);
 
+            var strurl = dblink + "InsertComment";
+            var res = SubmitAjax(param, strurl)
+           // insertDatabalseComment(userlogin, event.target.value)
+        }
+       
     </script>
 </head>
 <body>
@@ -231,48 +162,12 @@
     </div>
 
     <div class="container" style="width: 670px;">
-        <div class="row" style="margin-top:50px">
-            <div class="col-sm-1">
-                <div class="circle50">
-                    6
-                </div>
-            </div>
 
-            <div class="col-sm-11">
-                HAM TEST <br>
-                16 ตุลาคม 2023 16:00
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12" style="margin-top:10px">
-                <img src="https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*" alt="Avatar" style="width:500px;height:450px">
-            </div>
-        </div>
+        <div id="cPost"></div>
 
-        <div class="row" style="margin-top:30px">
-            <div class="col-sm-1">
-                <div class="circle50">
-                    7
-                </div>
-            </div>
+        <div id="cComment"></div>
 
-            <div class="col-sm-11">
-                LALIN TEST <br>
-                <input type="text" name="comment" value="" placeholder="comment" />
-            </div>
-        </div>
-
-        <div class="row" style="margin-top:30px">
-            <div class="col-sm-1">
-                <div class="circle50">
-                    7
-                </div>
-            </div>
-            <div class="col-sm-11">
-                LALIN TEST <br>
-                <p>รูปนี้น่ารักมากก</p>
-            </div>
-        </div>
+       
 
     </div>
 
@@ -281,7 +176,7 @@
         function SubmitAjax(formContainer, strurl) {
             var result;
             var datas = JSON.stringify(formContainer);
-            //var datas = formContainer;
+           // var datas = formContainer;
             $.ajax({
                 async: false
                 , type: "POST"

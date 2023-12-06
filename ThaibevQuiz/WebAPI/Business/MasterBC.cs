@@ -15,14 +15,14 @@ namespace WebAPI.Business
             configuration = config;
         }
 
-        public List<TbComment> GetCommentBC()
+        public List<TbComment> GetCommentBC(int PostId)
         {
             List<TbComment> res = new List<TbComment>();
             try
             {
                 using (var _db = new DbquizThaibevContext())
                 {
-                    res = _db.TbComments.ToList();
+                    res = _db.TbComments.Where(x => x.PostId == PostId).ToList();
                     if (res == null)
                         throw new Exception(" find on TbComments");
                     return res;
@@ -34,14 +34,14 @@ namespace WebAPI.Business
             }
         }
 
-        public List<TbPost> GetPostBC()
+        public TbPost GetPostBC(int PostId)
         {
-            List<TbPost> res = new List<TbPost>();
+            TbPost res = new TbPost();
             try
             {
                 using (var _db = new DbquizThaibevContext())
                 {
-                    res = _db.TbPosts.ToList();
+                    res = _db.TbPosts.Where(x => x.PostId == PostId).FirstOrDefault();
                     if (res == null)
                         throw new Exception(" find on TbPosts");
                     return res;
@@ -53,15 +53,31 @@ namespace WebAPI.Business
             }
         }
 
-        public StandardResponse InsertComment(TbComment data)
+        public StandardResponse InsertCommentBC(CommentReq data)
         {
-            throw new NotImplementedException();
+            TbComment dataInsert = new TbComment();
+            dataInsert.Comment = data.Comment;
+            dataInsert.PostId = data.PostId;
+            dataInsert.CommentBy = data.CommentBy;
+            StandardResponse res = new StandardResponse();
+            try
+            {
+                using (var _db = new DbquizThaibevContext())
+                {
+                    _db.TbComments.Add(dataInsert);
+                    _db.SaveChanges();
+
+                    res.status = "success";
+                    res.message = "success";
+
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-
-        public StandardResponse InsertPost(TbPost data)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

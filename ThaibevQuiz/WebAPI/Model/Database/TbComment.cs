@@ -9,9 +9,9 @@ public partial class TbComment
 
     public string? Comment { get; set; }
 
-    public DateTime? CommentBy { get; set; }
-
     public int PostId { get; set; }
+
+    public string? CommentBy { get; set; }
 
     public virtual TbPost Post { get; set; } = null!;
 }

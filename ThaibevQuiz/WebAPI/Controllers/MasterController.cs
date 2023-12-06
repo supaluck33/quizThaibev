@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebAPI.Interface;
 using WebAPI.Model.Database;
+using WebAPI.Model.BusinessModel;
 
 namespace WebAPI.Controllers
 {
@@ -25,11 +26,41 @@ namespace WebAPI.Controllers
 
         [HttpPost]
         [Route("GetFiles")]
-        public async Task<List<TbPost>> GetPosts()
+        public async Task<TbPost> GetPosts(int PostId)
         {
             try
             {
-                List<TbPost> data = _master.GetPostBC();
+                TbPost data = _master.GetPostBC(PostId);
+                return data;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("GetComments")]
+        public async Task<List<TbComment>> GetComment(int PostId)
+        {
+            try
+            {
+                List<TbComment> data = _master.GetCommentBC(PostId);
+                return data;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("InsertComment")]
+        public async Task<StandardResponse> InsertComment(CommentReq req)
+        {
+            try
+            {
+                StandardResponse data = _master.InsertCommentBC(req);
                 return data;
             }
             catch (Exception ex)

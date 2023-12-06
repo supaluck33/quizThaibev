@@ -5,9 +5,8 @@ namespace WebAPI.Interface
 {
     public interface IMaster
     {
-        StandardResponse InsertComment(TbComment data);
-        List<TbPost> GetPostBC();
-        List<TbComment> GetCommentBC();
-
+        TbPost GetPostBC(int PostId);
+        List<TbComment> GetCommentBC(int PostId);
+        StandardResponse InsertCommentBC(CommentReq req);
     }
 }
