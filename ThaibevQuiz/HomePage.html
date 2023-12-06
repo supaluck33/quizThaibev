@@ -41,6 +41,9 @@
         var userlogin = 'Blend 285';
         var postId = 2;
 
+        
+
+
         $(document).ready(function () {
             searchData(postId);
 
@@ -79,7 +82,7 @@
 
             rowheaderPost += ' <div class="col-sm-11">';
             rowheaderPost += data.postBy +' <br>';
-            rowheaderPost += data.postDate;
+            rowheaderPost += convertDateFormat(data.postDate);
             rowheaderPost += ' </div></div>';
 
             rowheaderPost += '<div class="row">';
@@ -151,6 +154,22 @@
             var strurl = dblink + "InsertComment";
             var res = SubmitAjax(param, strurl)
            // insertDatabalseComment(userlogin, event.target.value)
+        }
+
+        function convertDateFormat(datestring) {
+            var res = "";
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            //2023-12-06T14:00:45.053
+            var dates = datestring.split("T")[0];
+            var time = datestring.split("T")[1];
+
+            var txtdate = dates.split("-");
+            var txttime = time.split(":");
+
+            res = txtdate[2] + " " + monthNames[parseInt(txtdate[1]) - 1] + " " + txtdate[0] + "  " + txttime[0] + ":" + txttime[1];
+            return res;
         }
        
     </script>
